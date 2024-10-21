@@ -94,7 +94,7 @@ spring.jpa.hibernate.ddl-auto=update
 ## Testing the Database and Application
 1. **Start your Spring Boot application.**
 2. **Verify Database Connection:**
-   - Access the H2 Console or any SQL client and run the following queries to check if data has been inserted correctly:
+   - Access any SQL client and run the following queries to check if data has been inserted correctly:
    
    ### Check Data in `Users` Table
    ```sql
@@ -127,4 +127,3 @@ spring.jpa.hibernate.ddl-auto=update
 Following these procedures will set up MySQL for your application, create the necessary database structure, and seed it with sample data for development and testing purposes.
 ```
 
-Feel free to copy and paste this text into your markdown editor or wherever you need it! Let me know if there's anything else I can assist you with.

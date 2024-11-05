@@ -1,3 +1,4 @@
+
 # Implementation Guide for Setting Up MySQL
 
 ## Table of Contents
@@ -30,7 +31,9 @@ CREATE DATABASE user_transactions_db;
 USE user_transactions_db;
 ```
 
-### 2. Create Users Table
+### 2. Create Tables
+
+#### Users Table
 ```sql
 CREATE TABLE Users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -42,7 +45,7 @@ CREATE TABLE Users (
 );
 ```
 
-### 3. Create Transactions Table
+#### Transactions Table
 ```sql
 CREATE TABLE Transactions (
     transaction_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,20 +57,119 @@ CREATE TABLE Transactions (
 );
 ```
 
+#### Refunds Table
+```sql
+CREATE TABLE refunds (
+    refund_id INT NOT NULL AUTO_INCREMENT,
+    transaction_id INT NOT NULL,
+    user_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('Requested', 'Approved', 'Processed') NOT NULL,
+    PRIMARY KEY (refund_id),
+    FOREIGN KEY (transaction_id) REFERENCES transactions(transaction_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+```
+
+#### Notifications Table
+```sql
+CREATE TABLE notifications (
+    notification_id INT NOT NULL AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    message VARCHAR(255) NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (notification_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+```
+
+#### Admins Table
+```sql
+CREATE TABLE admins (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+```
+
+#### Payment Methods Table
+```sql
+CREATE TABLE payment_methods (
+    method_id INT NOT NULL AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    method_type ENUM('Credit Card', 'Bank Account', 'Other') NOT NULL,
+    provider VARCHAR(50),
+    account_number VARCHAR(50),
+    is_primary BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (method_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+```
+
+#### Admin Logs Table
+```sql
+CREATE TABLE admin_logs (
+    log_id INT NOT NULL AUTO_INCREMENT,
+    admin_id INT NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (log_id),
+    FOREIGN KEY (admin_id) REFERENCES admins(admin_id)
+);
+```
+
 ## Seeding the Database with Sample Data
 Create a file named `data.sql` in the `src/main/resources` directory of your Spring Boot project and add the following SQL statements:
 
 ```sql
+-- Insert sample data into Users table
 INSERT INTO Users (name, student_id, email, don_dollars_balance, meal_swipes_balance) 
 VALUES 
 ('Alice Johnson', 'S12347', 'alice.johnson@example.com', 120.50, 15),
-('Bob Brown', 'S12348', 'bob.brown@example.com', 80.00, 8);
+('Bob Brown', 'S12348', 'bob.brown@example.com', 80.00, 8),
+('Charlie Smith', 'S12349', 'charlie.smith@example.com', 50.00, 5);
 
+-- Insert sample data into Transactions table
 INSERT INTO Transactions (user_id, amount, type) 
 VALUES 
 (1, 15.00, 'Don Dollars'), 
 (2, 7.00, 'Meal Swipes'),
 (1, 5.50, 'Don Dollars');
+
+-- Insert sample data into Refunds table
+INSERT INTO refunds (transaction_id, user_id, amount, timestamp, status)
+VALUES
+    (1, 1, 15.00, '2024-10-23 09:00:00', 'Requested'),
+    (2, 2, 7.00, '2024-10-23 10:00:00', 'Approved');
+
+-- Insert sample data into Notifications table
+INSERT INTO notifications (user_id, message, is_read, timestamp)
+VALUES
+    (1, 'Your Don Dollars balance is low.', FALSE, '2024-10-23 08:15:30'),
+    (2, 'You have received a refund of 7.00 Meal Swipes.', TRUE, '2024-10-24 10:00:00'),
+    (3, 'Your Meal Swipes balance is below the minimum threshold.', FALSE, '2024-10-25 12:30:00');
+
+-- Insert sample data into Payment Methods table
+INSERT INTO payment_methods (user_id, method_type, provider, account_number, is_primary)
+VALUES
+    (1, 'Credit Card', 'Visa', '1234-5678-9876-5432', TRUE),
+    (2, 'Bank Account', 'Bank of America', '1111222233334444', FALSE),
+    (3, 'Credit Card', 'MasterCard', '4444-3333-2222-1111', TRUE);
+
+-- Insert sample data into Admin Logs table
+INSERT INTO admin_logs (admin_id, action, timestamp)
+VALUES
+    (1, 'Adjusted balance for user Alice Johnson.', '2024-10-24 08:00:00'),
+    (1, 'Processed refund for transaction ID 2.', '2024-10-24 10:00:00');
+
+-- Insert sample data into Admins table
+INSERT INTO admins (name, email, password)
+VALUES
+    ('John Admin', 'john.admin@campus.edu', 'securepassword123'),
+    ('Jane Admin', 'jane.admin@campus.edu', 'securepassword456');
 ```
 
 ## Connecting MySQL to Spring Boot Application
@@ -125,5 +227,5 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## Conclusion
 Following these procedures will set up MySQL for your application, create the necessary database structure, and seed it with sample data for development and testing purposes.
-```
 
+---

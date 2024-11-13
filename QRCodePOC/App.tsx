@@ -1,9 +1,6 @@
-import React, { useState , PropsWithChildren } from 'react';
+// App.tsx
+import React, { useState, useCallback } from 'react';
 import QRCodeScreen from './QRCodeScanner';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
 import {
   SafeAreaView,
   ScrollView,
@@ -17,10 +14,7 @@ import {
 
 import {
   Colors,
-  DebugInstructions,
   Header,
-  LearnMoreLinks,
-  ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
 function App(): React.JSX.Element {
@@ -31,93 +25,60 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const toggleScanner = () => {
-    setShowScanner(!showScanner);
-  };
+  const toggleScanner = useCallback(() => {
+    setShowScanner(prev => !prev);
+  }, []);
 
   return (
-    <SafeAreaView style={backgroundStyle}>
+    <SafeAreaView style={[backgroundStyle, styles.safeArea]}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
       {showScanner ? (
-        <QRCodeScreen />
+        <QRCodeScreen onBack={toggleScanner} />
       ) : (
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
           style={backgroundStyle}>
           <Header />
           <View
-            style={{
-              backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            }}>
-            <Section title="Welcome to the QR Code App">
+            style={[
+              styles.mainContainer,
+              {
+                backgroundColor: isDarkMode ? Colors.black : Colors.white,
+              },
+            ]}>
+            <Text style={styles.title}>Welcome to the QR Code App</Text>
+            <Text style={styles.description}>
               Tap the button below to open the QR code scanner.
-            </Section>
+            </Text>
             <Button title="Open QR Scanner" onPress={toggleScanner} />
-            <Section title="See Your Changes">
-              <ReloadInstructions />
-            </Section>
-            <Section title="Debug">
-              <DebugInstructions />
-            </Section>
-            <Section title="Learn More">
-              Read the docs to discover what to do next:
-            </Section>
-            <LearnMoreLinks />
           </View>
         </ScrollView>
-      )}
-      {showScanner && (
-        <Button title="Back to Home" onPress={toggleScanner} />
       )}
     </SafeAreaView>
   );
 }
 
-const Section: React.FC<SectionProps> = ({ children, title }) => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  safeArea: {
+    flex: 1,
   },
-  sectionTitle: {
+  mainContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  title: {
     fontSize: 24,
     fontWeight: '600',
+    marginBottom: 20,
+    color: Colors.primary,
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  description: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
   },
 });
 

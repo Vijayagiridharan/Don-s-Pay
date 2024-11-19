@@ -1,0 +1,57 @@
+package com.acs560.dons_pay_backend.controller;
+
+import org.springframework.web.bind.annotation.*;
+
+import com.acs560.dons_pay_backend.dto.LoginRequest;
+import com.acs560.dons_pay_backend.dto.RegisterRequest;
+import com.acs560.dons_pay_backend.service.AuthService;
+import com.acs560.dons_pay_backend.service.UserService;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+    private final UserService userService;
+    private final AuthService authService;
+
+    public AuthController(UserService userService, AuthService authService) {
+        this.userService = userService;
+        this.authService = authService;
+    }
+
+    /**
+     * Endpoint for user registration.
+     *
+     * @param request contains user registration details
+     * @return success message
+     */
+    @PostMapping("/register")
+    public String register(@RequestBody RegisterRequest request) {
+        try {
+            userService.registerUser(
+                    request.getName(),
+                    request.getStudentId(),
+                    request.getEmail(),
+                    request.getPassword()
+            );
+            return "User registered successfully!";
+        } catch (IllegalArgumentException e) {
+            return "Registration failed: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Endpoint for user login.
+     *
+     * @param request contains user login credentials
+     * @return success message or error message
+     */
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest request) {
+        try {
+            return authService.login(request.getEmail(), request.getPassword());
+        } catch (Exception e) {
+            return "Login failed: " + e.getMessage();
+        }
+    }
+
+   }

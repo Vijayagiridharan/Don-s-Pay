@@ -1,0 +1,39 @@
+package com.acs560.dons_pay_backend.service;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.acs560.dons_pay_backend.entity.User;
+import com.acs560.dons_pay_backend.repository.UserRepository;
+
+import java.math.BigDecimal;
+
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public void registerUser(String name, String studentId, String email, String password) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+        if (userRepository.findByStudentId(studentId).isPresent()) {
+            throw new IllegalArgumentException("Student ID already registered");
+        }
+
+        User user = new User(null, password, password, password, password, null, null);
+        user.setName(name);
+        user.setStudentId(studentId);
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setDonDollarsBalance(BigDecimal.ZERO);
+        user.setMealSwipesBalance(0);
+
+        userRepository.save(user);
+    }
+}

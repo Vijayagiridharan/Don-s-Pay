@@ -1,0 +1,40 @@
+package com.acs560.dons_pay_backend.controller;
+
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+    private final UserService userService;
+    private final AuthService authService;
+
+    public AuthController(UserService userService, AuthService authService) {
+        this.userService = userService;
+        this.authService = authService;
+    }
+
+    @PostMapping("/register")
+    public String register(@RequestBody RegisterRequest request) {
+        userService.registerUser(request.getName(), request.getStudentId(), request.getEmail(), request.getPassword());
+        return "User registered successfully!";
+    }
+
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest request) {
+        return authService.login(request.getEmail(), request.getPassword());
+    }
+}
+
+class RegisterRequest {
+    private String name;
+    private String studentId;
+    private String email;
+    private String password;
+    // Getters and setters
+}
+
+class LoginRequest {
+    private String email;
+    private String password;
+    // Getters and setters
+}

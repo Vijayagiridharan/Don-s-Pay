@@ -1,0 +1,46 @@
+package com.acs560.dons_pay_backend;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@SpringBootApplication
+public class DonsPayBackendApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(DonsPayBackendApplication.class, args);
+	}
+	
+	@Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(); 
+        // return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance(); // For testing only
+    }
+	
+	 @Bean
+	    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+	        return authenticationConfiguration.getAuthenticationManager();
+	    }
+	 
+	 @Bean
+	 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	     http.csrf().disable()
+	         .authorizeHttpRequests()
+	         .requestMatchers("/api/auth/register").permitAll()
+	         .requestMatchers("/api/auth/login").permitAll()
+	         .anyRequest().authenticated()
+	         .and()
+	         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+	     return http.build();
+	 }
+
+
+}

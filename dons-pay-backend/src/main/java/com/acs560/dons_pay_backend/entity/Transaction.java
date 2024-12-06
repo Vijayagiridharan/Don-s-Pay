@@ -3,17 +3,21 @@ package com.acs560.dons_pay_backend.entity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "Transactions")
+@Table(name = "transactions")
 public class Transaction {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer transactionId;
+    private Long transactionId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "merchant_id", nullable = false)
+    private Merchant merchant;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
@@ -25,67 +29,57 @@ public class Transaction {
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime timestamp = LocalDateTime.now();
 
-    // Enum for transaction types
     public enum TransactionType {
         DON_DOLLARS,
         MEAL_SWIPES
     }
 
-	public Transaction(Integer transactionId, User user, BigDecimal amount, TransactionType type,
-			LocalDateTime timestamp) {
-		super();
-		this.transactionId = transactionId;
-		this.user = user;
-		this.amount = amount;
-		this.type = type;
-		this.timestamp = timestamp;
-	}
+    // Getters and Setters
+    public Long getTransactionId() {
+        return transactionId;
+    }
 
-	public Integer getTransactionId() {
-		return transactionId;
-	}
+    public void setTransactionId(Long transactionId) {
+        this.transactionId = transactionId;
+    }
 
-	public void setTransactionId(Integer transactionId) {
-		this.transactionId = transactionId;
-	}
+    public User getUser() {
+        return user;
+    }
 
-	public User getUser() {
-		return user;
-	}
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-	public void setUser(User user) {
-		this.user = user;
-	}
+    public Merchant getMerchant() {
+        return merchant;
+    }
 
-	public BigDecimal getAmount() {
-		return amount;
-	}
+    public void setMerchant(Merchant merchant) {
+        this.merchant = merchant;
+    }
 
-	public void setAmount(BigDecimal amount) {
-		this.amount = amount;
-	}
+    public BigDecimal getAmount() {
+        return amount;
+    }
 
-	public TransactionType getType() {
-		return type;
-	}
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 
-	public void setType(TransactionType type) {
-		this.type = type;
-	}
+    public TransactionType getType() {
+        return type;
+    }
 
-	public LocalDateTime getTimestamp() {
-		return timestamp;
-	}
+    public void setType(TransactionType type) {
+        this.type = type;
+    }
 
-	public void setTimestamp(LocalDateTime timestamp) {
-		this.timestamp = timestamp;
-	}
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
 
-	@Override
-	public String toString() {
-		return "Transaction [transactionId=" + transactionId + ", user=" + user + ", amount=" + amount + ", type="
-				+ type + ", timestamp=" + timestamp + "]";
-	}
-
-    // Getters and setters
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
 }

@@ -15,9 +15,14 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void registerUser(String name, String studentId, String email, String password) {
-        String encodedPassword = passwordEncoder.encode(password); // Hash the password
-        User user = new User(name, studentId, email, encodedPassword); // Simplified creation
+    public void registerUser(String firstName, String lastName, String phoneNumber, String pin, String email, String studentId, String password) {
+        // Hash the password
+        String encodedPassword = passwordEncoder.encode(password);
+        
+        // Create a new user with the updated constructor
+        User user = new User(firstName, lastName, phoneNumber, pin, email, studentId, encodedPassword);
+        
+        // Save the user in the repository
         userRepository.save(user);
     }
 

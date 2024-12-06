@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+
 @Entity
 @Table(name = "Users")
 public class User {
@@ -12,16 +13,22 @@ public class User {
     private Integer userId;
 
     @Column(nullable = false, length = 100)
-    private String name;
+    private String firstName;
+    
+    @Column(nullable = false, length = 100)
+    private String lastName;
 
     @Column(unique = true, nullable = false, length = 50)
     private String studentId;
+    
+    @Column(unique = true, nullable = false, length = 10)
+    private String phoneNumber;
 
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 
     @Column(nullable = false, length = 60)
-    private String password; // Add this column for login functionality
+    private String pin; // Add this column for login functionality
 
     @Column(columnDefinition = "DECIMAL(10,2) DEFAULT 0")
     private BigDecimal donDollarsBalance = BigDecimal.ZERO;
@@ -34,23 +41,27 @@ public class User {
     public User() {
     }
 
-    public User(String name, String studentId, String email, String password) {
-        this.name = name;
+    public User(String firstName, String lastName, String studentId, String email, String pin, String phoneNumber) {
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.studentId = studentId;
+        this.phoneNumber = phoneNumber;
         this.email = email;
-        this.password = password;
+        this.pin = pin;
         this.donDollarsBalance = BigDecimal.ZERO; // Default values
         this.mealSwipesBalance = 0; // Default values
     }
     
-    public User(Integer userId, String name, String studentId, String email, String password,
+    public User(Integer userId, String firstName, String lastName, String studentId, String email, String pin, String phoneNumber,
 			BigDecimal donDollarsBalance, Integer mealSwipesBalance) {
 		super();
 		this.userId = userId;
-		this.name = name;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.phoneNumber = phoneNumber;
 		this.studentId = studentId;
 		this.email = email;
-		this.password = password;
+		this.pin = pin;
 		this.donDollarsBalance = donDollarsBalance;
 		this.mealSwipesBalance = mealSwipesBalance;
 	}
@@ -63,12 +74,20 @@ public class User {
 		this.userId = userId;
 	}
 
-	public String getName() {
-		return name;
+	public String getFirstName() {
+		return firstName;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
 	}
 
 	public String getStudentId() {
@@ -79,6 +98,14 @@ public class User {
 		this.studentId = studentId;
 	}
 
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+	}
+
 	public String getEmail() {
 		return email;
 	}
@@ -87,12 +114,12 @@ public class User {
 		this.email = email;
 	}
 
-	public String getPassword() {
-		return password;
+	public String getPin() {
+		return pin;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setPin(String pin) {
+		this.pin = pin;
 	}
 
 	public BigDecimal getDonDollarsBalance() {
@@ -111,32 +138,6 @@ public class User {
 		this.mealSwipesBalance = mealSwipesBalance;
 	}
 
-	@Override
-	public String toString() {
-		return "User [userId=" + userId + ", name=" + name + ", studentId=" + studentId + ", email=" + email
-				+ ", password=" + password + ", donDollarsBalance=" + donDollarsBalance + ", mealSwipesBalance="
-				+ mealSwipesBalance + "]";
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(donDollarsBalance, email, mealSwipesBalance, name, password, studentId, userId);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		User other = (User) obj;
-		return Objects.equals(donDollarsBalance, other.donDollarsBalance) && Objects.equals(email, other.email)
-				&& Objects.equals(mealSwipesBalance, other.mealSwipesBalance) && Objects.equals(name, other.name)
-				&& Objects.equals(password, other.password) && Objects.equals(studentId, other.studentId)
-				&& Objects.equals(userId, other.userId);
-	}
 
     // Getters and setters
 }

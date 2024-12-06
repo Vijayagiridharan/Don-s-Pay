@@ -38,16 +38,17 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
             // Generate a proper BCrypt hash
-            String encodedPassword = passwordEncoder.encode(request.getPassword());
-            System.out.println("Generated hash: " + encodedPassword); // Debug print
+            String encodePin = passwordEncoder.encode(request.getPin());
+            System.out.println("Generated hash: " + encodePin); // Debug print
 
-            userService.registerUser(
-                request.getName(),
-                request.getStudentId(),
-                request.getEmail(),
-                request.getPassword()
-            );
-            return ResponseEntity.ok("User registered successfully!");
+            Integer userId = userService.registerUser(request.getFirstName(), 
+							request.getLastName(),
+							request.getPhoneNumber(),
+							request.getStudentId(), 
+							request.getEmail(),
+							encodePin);
+
+            return ResponseEntity.ok("User registered successfully with userId: " + userId);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
         }
@@ -63,14 +64,14 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             // Debug prints
-            System.out.println("Login attempt for email: " + request.getEmail());
-            userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
-                System.out.println("Stored password hash: " + user.getPassword());
+            System.out.println("Login attempt for studentId: " + request.getStudentId());
+            userRepository.findByStudentId(request.getStudentId()).ifPresent(user -> {
+                System.out.println("Stored password hash: " + user.getPin());
                 System.out.println("Password match result: " + 
-                    passwordEncoder.matches(request.getPassword(), user.getPassword()));
+                    passwordEncoder.matches(request.getPin(), user.getPin()));
             });
 
-            String message = authService.login(request.getEmail(), request.getPassword());
+            String message = authService.login(request.getStudentId(), request.getPin());
             return ResponseEntity.ok().body(message);
         } catch (Exception e) {
             System.out.println("Login failed: " + e.getMessage());
@@ -78,16 +79,5 @@ public class AuthController {
         }
     }
     
- // Debug endpoint to check stored password
-    @GetMapping("/debug/user/{email}")
-    public ResponseEntity<?> debugUser(@PathVariable String email) {
-        return userRepository.findByEmail(email)
-            .map(user -> ResponseEntity.ok(Map.of(
-                "email", user.getEmail(),
-                "passwordHash", user.getPassword(),
-                "hashLength", user.getPassword().length()
-            )))
-            .orElse(ResponseEntity.notFound().build());
-    }
 
    }

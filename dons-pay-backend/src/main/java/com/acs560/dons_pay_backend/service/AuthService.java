@@ -21,32 +21,32 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public String login(String email, String password) {
+    public String login(String studentId, String pin) {
         try {
-            logger.debug("Starting login process for email: {}", email);
+            logger.debug("Starting login process for user: {}", studentId);
             
             // Check if user exists
-            var userOptional = userRepository.findByEmail(email);
+            var userOptional = userRepository.findByStudentId(studentId);
             if (userOptional.isEmpty()) {
-                logger.debug("User not found with email: {}", email);
+                logger.debug("User not found with studentId: {}", studentId);
                 throw new AuthenticationException("User not found") {};
             }
             
             logger.debug("User found, attempting authentication");
             
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
+                new UsernamePasswordAuthenticationToken(studentId, pin)
             );
             
             if (authentication.isAuthenticated()) {
-                logger.debug("Authentication successful for user: {}", email);
+                logger.debug("Authentication successful for user: {}", studentId);
                 return "Login successful for user: " + authentication.getName();
             } else {
                 logger.debug("Authentication failed - not authenticated");
                 throw new AuthenticationException("Authentication failed") {};
             }
         } catch (AuthenticationException e) {
-            logger.error("Authentication failed for user: {}. Error: {}", email, e.getMessage());
+            logger.error("Authentication failed for user: {}. Error: {}", studentId, e.getMessage());
             throw new AuthenticationException("Invalid credentials: " + e.getMessage()) {};
         }
     }

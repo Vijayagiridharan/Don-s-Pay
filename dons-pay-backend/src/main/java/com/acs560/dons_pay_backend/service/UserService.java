@@ -5,6 +5,8 @@ import com.acs560.dons_pay_backend.entity.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -15,16 +17,16 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void registerUser(String name, String studentId, String email, String password) {
-        String encodedPassword = passwordEncoder.encode(password); // Hash the password
-        User user = new User(name, studentId, email, encodedPassword); // Simplified creation
+    public Integer registerUser(String firstName, String lastName, String phoneNumber , String studentId, String email, String pin) {
+        String encodedPin = passwordEncoder.encode(pin); // Hash the password
+        User user = new User(firstName, lastName, studentId, email, pin, phoneNumber);
         userRepository.save(user);
-    }
+        return user.getUserId();
+        }
 
-    public boolean authenticateUser(String email, String rawPassword) {
-        User user = userRepository.findByEmail(email)
+    public boolean authenticateUser(String studentId, String rawPin) {
+        User user = userRepository.findByStudentId(studentId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        // Match raw password with encoded password
-        return passwordEncoder.matches(rawPassword, user.getPassword());
+        return passwordEncoder.matches(rawPin, user.getPin());
     }
 }

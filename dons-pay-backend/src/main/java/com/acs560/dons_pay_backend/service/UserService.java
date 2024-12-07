@@ -25,8 +25,7 @@ public class UserService {
         this.transactionRepository = transactionRepository;
     }
 
-    public Integer registerUser(String firstName, String lastName, String phoneNumber, String studentId, String email, String pin) {
-        String encodedPin = passwordEncoder.encode(pin); // Hash the password
+    public Integer registerUser(String firstName, String lastName, String phoneNumber, String studentId, String email, String encodedPin) {
         User user = new User(firstName, lastName, studentId, email, encodedPin, phoneNumber); // Use encodedPin here
         userRepository.save(user);
         return user.getUserId();

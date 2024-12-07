@@ -52,7 +52,7 @@ public class DonsPayBackendApplication {
                 passwordEncoder()
             ))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> 

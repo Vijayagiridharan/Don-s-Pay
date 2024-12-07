@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.acs560.dons_pay_backend.security.CustomUserDetailsService;
+import com.acs560.dons_pay_backend.security.JwtFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @SpringBootApplication
 public class DonsPayBackendApplication {
@@ -21,11 +23,17 @@ public class DonsPayBackendApplication {
         SpringApplication.run(DonsPayBackendApplication.class, args);
     }
     
+    /**
+     * Bean for password encoding using BCrypt.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
     
+    /**
+     * Bean for configuring DaoAuthenticationProvider to integrate user details service and password encoding.
+     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider(
             CustomUserDetailsService userDetailsService,
@@ -36,27 +44,30 @@ public class DonsPayBackendApplication {
         return provider;
     }
     
+    /**
+     * Bean for managing authentication in the application.
+     */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
     
+    /**
+     * Security filter chain configuration with JWT filter integration.
+     */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.disable())
-            .authenticationProvider(authenticationProvider(
-                http.getSharedObject(CustomUserDetailsService.class),
-                passwordEncoder()
-            ))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**",  "/api/user/**", "api/transactions/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/api/auth/**").permitAll() // Public endpoints for login/register
+                .anyRequest().authenticated()              // All other endpoints are protected
             )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter before authentication filter
             .sessionManagement(session -> 
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless sessions with JWT
             );
         
         return http.build();

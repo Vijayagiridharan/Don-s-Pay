@@ -57,7 +57,9 @@ public class UserService {
 
         // Return the new balance
         return user.getDonDollarsBalance();
+
     }
+
 
 
     public BalanceResponse getUserBalance(String phoneNumber) {

@@ -6,11 +6,11 @@ import SplashScreen from 'react-native-splash-screen';
 import SplitScreen from './Component/Home';
 import Sign from './Component/Signup';
 import Login from './Component/LoginScreen';
-import UserVerification from './Component/Userverification';
 import DonsPayLoginScreen from './Component/Mainhome';
-import VirtualCardScreen from './Component/Cards';
 import SendMoneyScreen from './Component/Sendmoney';
 import LoadMoneyScreen from './Component/LoadMoneyScreen';
+import ProfileScreen from './Component/ProfileScreen';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -49,11 +49,6 @@ const App = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Third"
-          component={UserVerification}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
           name="Fifth"
           component={Login}
           options={{ headerShown: false }}
@@ -65,7 +60,7 @@ const App = () => {
         />
         <Stack.Screen
           name="Sixth"
-          component={VirtualCardScreen}
+          component={ProfileScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

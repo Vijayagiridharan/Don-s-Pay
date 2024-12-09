@@ -5,35 +5,67 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  Animated,
+  Easing,
   BackHandler,
   ToastAndroid,
   Alert,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 
 const SplitScreen = ({ route, navigation }) => {
-  const { phoneNumber, token, refresh, studentId } = route.params;
-  const [donDollarBalance, setDonDollarBalance] = useState(null);
-  const [mealSwipes, setMealSwipes] = useState(null);
+  const { phoneNumber, token, studentId } = route.params;
+  const [donDollarBalance, setDonDollarBalance] = useState(0);
+  const [mealSwipes, setMealSwipes] = useState(0);
   const [transactions, setTransactions] = useState([]);
+  const [studentName, setStudentName] = useState('User');
   const [backPressCount, setBackPressCount] = useState(0);
   const [isScanning, setIsScanning] = useState(false);
+  const [showBalance, setShowBalance] = useState(false);
+  const fadeAnim = new Animated.Value(0);
+  
 
+  // Fetch data on component mount
   useEffect(() => {
+    fetchStudentDetails();
     fetchBalance();
     fetchTransactions();
-  }, [phoneNumber]);
+    startFadeIn();
+  }, []);
 
+  // Fade-in animation
+  const startFadeIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Fetch student details
+  const fetchStudentDetails = async () => {
+    try {
+      const response = await axios.get('http://10.0.0.6:8080/api/user/getProfile', {
+        params: { studentId },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStudentName(response.data.firstName || 'User');
+    } catch (error) {
+      console.error('Error fetching student details:', error);
+    }
+  };
+
+  // Fetch balance
   const fetchBalance = async () => {
     try {
       const response = await axios.get('http://10.0.0.6:8080/api/user/balance', {
         params: { phoneNumber },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setDonDollarBalance(response.data.donDollarsBalance || 0);
       setMealSwipes(response.data.mealSwipesBalance || 0);
@@ -44,35 +76,21 @@ const SplitScreen = ({ route, navigation }) => {
     }
   };
 
-  useEffect(() => {
-    if (route.params?.refresh) {
-      // Re-fetch data when 'refresh' parameter exists
-      fetchBalance();
-      fetchTransactions();
-
-      // Reset the refresh parameter
-      navigation.setParams({ refresh: false });
-    }
-  }, [route.params?.refresh]);
-
+  // Fetch transactions
   const fetchTransactions = async () => {
     try {
       const response = await axios.get('http://10.0.0.6:8080/api/user/transactions', {
         params: { phoneNumber },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       setTransactions(response.data.reverse());
-
-      
     } catch (error) {
       console.error('Error fetching transactions:', error);
       setTransactions([]);
     }
   };
 
+  // Logout handler
   const handleLogout = async () => {
     try {
       await AsyncStorage.clear();
@@ -83,7 +101,7 @@ const SplitScreen = ({ route, navigation }) => {
     }
   };
 
-  // Handle back press
+  // Back press handler
   useEffect(() => {
     const backAction = () => {
       if (isScanning) {
@@ -107,49 +125,36 @@ const SplitScreen = ({ route, navigation }) => {
     };
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
     return () => backHandler.remove();
   }, [navigation, backPressCount, isScanning]);
-
-  // Save current screen
-  useEffect(() => {
-    const saveCurrentScreen = async () => {
-      try {
-        await AsyncStorage.setItem('lastScreen', JSON.stringify({ screen: 'Fourth', phoneNumber }));
-      } catch (e) {
-        console.error('Failed to save the current screen.', e);
-      }
-    };
-
-    saveCurrentScreen();
-  }, [phoneNumber, studentId]);
-
+  
+  
   // Render transaction item
   const renderTransactionItem = ({ item }) => {
-    const isSentTransaction = item.merchant.merchantName;
-    const transactionName = item.merchant.merchantName ;
-    const transactionAmount = `${isSentTransaction ? '-' : '+'} $ ${item.amount}`;
-
+    const isExpense = item.amount > 0;  // Change logic here
     return (
-      <View style={styles.transactionContainer}>
+      <View style={styles.transactionCard}>
         <Icon
-          name={isSentTransaction ? 'arrow-up' : 'arrow-down'}
+          name={isExpense ? 'arrow-up-circle' : 'arrow-down-circle'}
           size={30}
-          color={isSentTransaction ? 'red' : 'green'}
+          color={isExpense ? '#FF6F61' : '#6C63FF'}
           style={styles.transactionIcon}
         />
         <View style={styles.transactionDetails}>
-          <Text style={styles.transactionName}>{transactionName}</Text>
-          <Text style={styles.transactionTime}>{new Date(item.timestamp).toLocaleString()}</Text>
+          <Text style={styles.transactionName}>{item.merchant.merchantName}</Text>
+          <Text style={styles.transactionTime}>
+            {new Date(item.timestamp).toLocaleString()}
+          </Text>
         </View>
-        <Text style={[styles.transactionAmount, { color: isSentTransaction ? 'red' : 'green' }]}>
-          {transactionAmount}
+        <Text style={[
+          styles.transactionAmount, 
+          { color: isExpense ? '#FF6F61' : '#6C63FF' }
+        ]}>
+          {isExpense ? '-' : '+'}${Math.abs(item.amount)}
         </Text>
       </View>
     );
   };
-
-  // QR Code Scanner
   const ScanAndPay = () => {
     const onSuccess = (e) => {
       try {
@@ -188,69 +193,154 @@ const SplitScreen = ({ route, navigation }) => {
     return <ScanAndPay />;
   }
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.upperScreen}>
-        <TouchableOpacity style={styles.upperleft}>
-          <Text style={styles.upperText}>Current Balance</Text>
-          <Text style={styles.balanceText}>Don $$ : {` ${donDollarBalance}`}</Text>
-          <Text style={styles.balanceText}>Meal Swipes : {`${mealSwipes}`}</Text>
-        </TouchableOpacity >
 
-        <View style={styles.upperright}>
-          <TouchableOpacity
-            style={styles.loadmoney}
+  return (
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      {/* Top Section with Gradient */}
+      <LinearGradient 
+        colors={['#6C63FF', '#7E85FF']} 
+        style={styles.topSection}
+      >
+        <View style={styles.headerContainer}>
+          <View style={styles.headerLeftContent}>
+            <Text style={styles.greetingText}>Good Morning,</Text>
+            <Text style={styles.userName}>{studentName}</Text>
+          </View>
+          <View style={styles.headerRightContent}>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('Profile', { studentId, token, phoneNumber })}
+              style={styles.profileButton}
+            >
+              <Icon name="account" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+              <Icon name="logout" size={24} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Balance Card with Privacy Option */}
+        <View style={styles.balanceCard}>
+          <TouchableOpacity 
+            style={styles.balanceItem} 
+            onPress={() => setShowBalance(!showBalance)}
+          >
+            <Text style={styles.balanceLabel}>Don $$</Text>
+            <Text style={styles.balanceAmount}>
+              {showBalance 
+                ? `$${donDollarBalance.toFixed(2)}` 
+                : '****'}
+            </Text>
+          </TouchableOpacity>
+          <View style={styles.balanceItem}>
+            <Text style={styles.balanceLabel}>Meal Swipes</Text>
+            <Text style={styles.balanceAmount}>
+              {mealSwipes}
+            </Text>
+          </View>
+        </View>
+
+        {/* Quick Actions remain the same */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={styles.quickActionButton}
             onPress={() => navigation.navigate('Eight', { studentId, token, phoneNumber })}
           >
-            <View style={{ margin: 10 }}>
-              <Icon name="arrow-down" size={35} color="black" />
-            </View>
-            <Text style={styles.upperText}>Load</Text>
-            <Text style={styles.lowertext}>Money</Text>
+            <Icon name="wallet-plus" size={24} color="#6C63FF" />
+            <Text style={styles.quickActionText}>Load Money</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.sendrequest}
-            onPress={() => setIsScanning(true)}
+          <TouchableOpacity 
+  style={styles.quickActionButton}
+  onPress={() => {
+    console.log('Setting isScanning to true'); // Debug
+    setIsScanning(true);
+  }}
+>
+  <Icon name="qrcode-scan" size={24} color="#6C63FF" />
+  <Text style={styles.quickActionText}>Scan & Pay</Text>
+</TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.quickActionButton}
+            onPress={() => navigation.navigate('Ninth', { phoneNumber, token })}
           >
-            <View style={{ margin: 10 }}>
-              <Icon name="arrow-up" size={35} color="black" />
-            </View>
-            <Text style={styles.upperText}>Scan &</Text>
-            <Text style={styles.lowertext}>Pay</Text>
+            <Icon name="credit-card" size={24} color="#6C63FF" />
+            <Text style={styles.quickActionText}>Send Money</Text>
           </TouchableOpacity>
         </View>
-      </View>
-      <View style={styles.lowerScreen}>
-        <Text style={styles.title}>Recent Transactions</Text>
+      </LinearGradient>
+
+      {/* Transactions Section remains the same */}
+      <View style={styles.transactionsSection}>
+        <Text style={styles.sectionTitle}>Recent Transactions</Text>
         <FlatList
           data={transactions}
           renderItem={renderTransactionItem}
           keyExtractor={(item, index) => index.toString()}
+          showsVerticalScrollIndicator={false}
         />
-      </View><TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+      </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EFF3F9',
+    backgroundColor: '#F9FAFB',
   },
-  logoutButton: {
-    backgroundColor: '#DAA520',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 10,
-    alignSelf: 'center',
-    marginVertical: 20,
+  topSection: {
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  logoutButtonText: {
-    color: '#FFF',
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  greetingText: {
     fontSize: 18,
+    color: '#FFF',
+    opacity: 0.8,
+  },
+  userName: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#FFF',
+  },
+  balanceCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    borderRadius: 15,
+    padding: 15,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  balanceItem: {
+    alignItems: 'center',
+  },
+  balanceLabel: {
+    fontSize: 16,
+    color: '#6C63FF',
+    marginBottom: 5,
+  },
+  balanceAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#6C63FF',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
   },
   scannerContainer: {
     flex: 1,
@@ -264,7 +354,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cancelButton: {
-    backgroundColor: '#DAA520',
+    backgroundColor: '#6C63FF',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -274,100 +364,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  upperScreen: {
-    flex: 1,
+  
+  quickActionButton: {
     flexDirection: 'row',
-    padding: 15,
-  },
-  upperleft: {
-    flex: 1.3,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    justifyContent: 'space-evenly',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  upperText: {
-    color: '#DAA520',
-    fontSize: 20,
-    fontWeight: '700',
-    marginVertical: 5,
-  },
-  lowertext: {
-    color: '#DAA520',
-    fontSize: 20,
-    fontWeight: '700',
-    marginVertical: 5,
-  },
-  balanceText: {
-    color: '#DAA520',
-    fontSize: 18,
-    fontWeight: '700',
-    marginVertical: 5,
-  },
-  upperright: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 10,
     paddingVertical: 10,
-  },
-  loadmoney: {
-    flex: 1,
-    backgroundColor: '#FFF',
-    margin: 5,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  sendrequest: {
-    flex: 1,
-    backgroundColor: '#FFF',
-    margin: 5,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
+  quickActionText: {
+    marginLeft: 10,
+    color: '#6C63FF',
+    fontWeight: '600',
   },
-  lowerScreen: {
+  transactionsSection: {
     flex: 1,
-    backgroundColor: '#EFF3F9',
+    paddingHorizontal: 20,
     paddingTop: 20,
   },
-  title: {
-    fontSize: 25,
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: '700',
-    color: '#2C3E50',
     marginBottom: 15,
-    paddingHorizontal: 20,
+    color: '#34495E',
   },
-  transactionContainer: {
+  transactionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    borderRadius: 15,
-    marginVertical: 8,
-    marginHorizontal: 20,
     backgroundColor: '#FFF',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   transactionIcon: {
     marginRight: 15,
@@ -388,6 +426,87 @@ const styles = StyleSheet.create({
   transactionAmount: {
     fontSize: 18,
     fontWeight: '700',
+  },
+  scannerContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  scanText: {
+    fontSize: 18,
+    color: '#FFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  cancelButton: {
+    backgroundColor: '#6C63FF',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  quickActionButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginHorizontal: 5,
+  },
+  quickActionText: {
+    marginTop: 8,
+    color: '#6C63FF',
+    fontWeight: '600',
+  },
+  transactionIcon: {
+    marginRight: 15,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerLeftContent: {
+    flex: 1,
+  },
+  headerRightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileButton: {
+    marginRight: 15,
+  },
+  logoutButton: {},
+  quickActionButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    width: '30%',  // Ensure consistent width
+  },
+  quickActionText: {
+    marginTop: 5,
+    color: '#6C63FF',
+    fontWeight: '600',
+    fontSize: 12,
+    textAlign: 'center',
   },
 });
 

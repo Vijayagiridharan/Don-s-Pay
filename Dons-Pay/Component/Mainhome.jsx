@@ -11,19 +11,32 @@ const DonsPayLoginScreen = (props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to DonsPay!</Text>
-      <Image source={require('../assets/logo.jpg')} style={styles.logo} />
+      <Image source={require("../assets/logo.jpg")} style={styles.logo} />
+      <Text style={styles.title}>Welcome to</Text>
+      <Text style={styles.subtitle}>DonsPay</Text>
+      
+      <Text style={styles.tagline}>
+      One-stop for all your campus payments.
+      </Text>
+
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.buttonRectangle} onPress={() => props.navigation.navigate('Fifth')}>
+        <TouchableOpacity
+          style={[styles.buttonRectangle, styles.loginButton]}
+          onPress={() => props.navigation.navigate("Fifth")}
+        >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.buttonRectangle} onPress={() => props.navigation.navigate('Second')}>
+        <TouchableOpacity
+          style={[styles.buttonRectangle, styles.registerButton]}
+          onPress={() => props.navigation.navigate("Second")}
+        >
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
+
 
 // const styles = StyleSheet.create({
 //   container: {
@@ -74,93 +87,65 @@ const DonsPayLoginScreen = (props) => {
 // });
 
 const styles = StyleSheet.create({
-  detailsContainer: {
-    width: '80%',
-    alignItems: 'center',
-    padding: 20,
-  },
-  input2: {
-    width: '100%',
-    height: 50,
-    borderColor: '#000',
-    borderWidth: 1,
-    marginVertical: 15,
-    paddingLeft: 10,
-    borderRadius: 8,
-    color: '#000',
-    backgroundColor: '#fff',
-  },
-  camera: {
-    flex: 1,
-    width: '100%',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scanText: {
-    color: '#fff',
-    fontSize: 16,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 16,
-  },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 10,
-    color: '#DAA520',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 20,
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 200,
+    height: 200,
     marginBottom: 20,
   },
-  input: {
-    width: '80%',
-    height: 50,
-    borderColor: '#000',
-    borderWidth: 1,
+  title: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#DAA520",
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 36,
+    fontWeight: "800",
+    color: "#000",
     marginBottom: 15,
-    paddingLeft: 10,
-    color: '#000',
-    backgroundColor: '#fff',
+  },
+  tagline: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#444",
+    marginHorizontal: 20,
+    marginBottom: 15,
   },
   buttonContainer: {
-    width: '80%',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     marginTop: 20,
   },
   buttonRectangle: {
-    backgroundColor: '#000',
-    padding: 15,
-    width: '60%',
-    alignItems: 'center',
+    paddingVertical: 15,
+    width: "70%",
+    alignItems: "center",
+    borderRadius: 50,
     marginVertical: 10,
-    borderRadius: 8,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  loginButton: {
+    backgroundColor: "#000",
+  },
+  registerButton: {
+    backgroundColor: "#DAA520",
   },
   buttonText: {
-    color: '#DAA520',
     fontSize: 18,
-  },
-  text: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#000',
+    fontWeight: "600",
+    color: "#fff",
   },
 });
+
 export default DonsPayLoginScreen;

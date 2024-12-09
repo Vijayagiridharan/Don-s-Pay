@@ -3,6 +3,7 @@ package com.acs560.dons_pay_backend.service;
 import com.acs560.dons_pay_backend.repository.TransactionRepository;
 import com.acs560.dons_pay_backend.repository.UserRepository;
 import com.acs560.dons_pay_backend.dto.BalanceResponse;
+import com.acs560.dons_pay_backend.dto.LoadMoney;
 import com.acs560.dons_pay_backend.entity.Transaction;
 import com.acs560.dons_pay_backend.entity.User;
 
@@ -48,5 +49,19 @@ public class UserService {
         User user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new RuntimeException("User not found with phone number: " + phoneNumber));
         return transactionRepository.findByUser(user);
+    }
+    public BigDecimal addMoneyToUserBalance(LoadMoney loadMoney) {
+        // Find the user by studentId
+        User user = userRepository.findByStudentId(loadMoney.getStudentId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Add the money to the existing balance
+        user.setDonDollarsBalance(user.getDonDollarsBalance().add(loadMoney.getAmount()));
+
+        // Save the updated user
+        userRepository.save(user);
+
+        // Return the new balance
+        return user.getDonDollarsBalance();
     }
 }

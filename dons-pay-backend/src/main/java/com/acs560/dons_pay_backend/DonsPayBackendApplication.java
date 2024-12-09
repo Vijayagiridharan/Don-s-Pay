@@ -62,8 +62,8 @@ public class DonsPayBackendApplication {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Public endpoints for login/register
-                .anyRequest().authenticated()              // All other endpoints are protected
+                .requestMatchers("/api/auth/**").permitAll() 
+                .anyRequest().authenticated()             
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter before authentication filter
             .sessionManagement(session -> 

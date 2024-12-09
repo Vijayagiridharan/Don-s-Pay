@@ -3,9 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Aler
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SendMoneyScreen = ({ route }) => {
-  const { phoneNumber, qrData, token } = route.params;
+  const { phoneNumber, qrData, token, studentId } = route.params;
   const navigation = useNavigation();
 
   const [donDollarsBalance, setDonDollarsBalance] = useState(0);
@@ -19,18 +20,35 @@ const SendMoneyScreen = ({ route }) => {
   const merchantNumber = qrData?.merchantNumber || '';
   const merchantId = qrData?.merchantId || '';
 
-  // Fetch balance from the backend
+  // Fetch balance from the backend and update cache
   useEffect(() => {
     const fetchBalance = async () => {
       try {
+        // Check cache first
+        const cachedBalance = await AsyncStorage.getItem('userBalance');
+        if (cachedBalance) {
+          const { donDollarsBalance, mealSwipesBalance } = JSON.parse(cachedBalance);
+          setDonDollarsBalance(donDollarsBalance || 0);
+          setMealSwipesBalance(mealSwipesBalance || 0);
+        }
+
+        // Fetch from API
         const response = await axios.get('http://10.0.0.6:8080/api/user/balance', {
           params: { phoneNumber },
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        setDonDollarsBalance(response.data.donDollarsBalance || 0);
-        setMealSwipesBalance(response.data.mealSwipesBalance || 0);
+
+        // Update state and cache
+        const newBalance = {
+          donDollarsBalance: response.data.donDollarsBalance || 0,
+          mealSwipesBalance: response.data.mealSwipesBalance || 0,
+        };
+        setDonDollarsBalance(newBalance.donDollarsBalance);
+        setMealSwipesBalance(newBalance.mealSwipesBalance);
+
+        await AsyncStorage.setItem('userBalance', JSON.stringify(newBalance));
       } catch (error) {
         console.error('Error fetching balance:', error);
         Alert.alert('Error', 'Unable to fetch balance.');
@@ -38,7 +56,7 @@ const SendMoneyScreen = ({ route }) => {
     };
 
     fetchBalance();
-  }, [phoneNumber]);
+  }, [phoneNumber, studentId]);
 
   const handleSendMoney = async () => {
     if (!selectedBalanceType) {
@@ -76,10 +94,29 @@ const SendMoneyScreen = ({ route }) => {
           },
         }
       );
+
+      // Update balance locally
+      const updatedBalance = {
+        donDollarsBalance:
+          selectedBalanceType === 'DON_DOLLARS'
+            ? donDollarsBalance - amount
+            : donDollarsBalance,
+        mealSwipesBalance:
+          selectedBalanceType === 'MEAL_SWIPES'
+            ? mealSwipesBalance - amount
+            : mealSwipesBalance,
+      };
+
+      setDonDollarsBalance(updatedBalance.donDollarsBalance);
+      setMealSwipesBalance(updatedBalance.mealSwipesBalance);
+
+      // Update cache
+      await AsyncStorage.setItem('userBalance', JSON.stringify(updatedBalance));
+
       setShowSuccessModal(true); // Show success modal
       setTimeout(() => {
         setShowSuccessModal(false);
-        navigation.navigate('Fourth', {phoneNumber, token, refresh: true}); 
+        navigation.navigate('Fourth', { phoneNumber, token, refresh: true, studentId });
       }, 2000);
     } catch (error) {
       console.error('Error sending money:', error);
@@ -132,7 +169,7 @@ const SendMoneyScreen = ({ route }) => {
       <TextInput
         style={styles.input}
         keyboardType="numeric"
-        placeholder="Rs. 0"
+        placeholder="$"
         placeholderTextColor="#FFFFFF"
         value={enteredAmount}
         onChangeText={setEnteredAmount}

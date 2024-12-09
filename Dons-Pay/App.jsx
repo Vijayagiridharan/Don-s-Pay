@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SplashScreen from 'react-native-splash-screen';
-
 import SplitScreen from './Component/Home';
 import Sign from './Component/Signup';
 import Login from './Component/LoginScreen';
@@ -11,7 +10,7 @@ import UserVerification from './Component/Userverification';
 import DonsPayLoginScreen from './Component/Mainhome';
 import VirtualCardScreen from './Component/Cards';
 import SendMoneyScreen from './Component/Sendmoney';
-import AccountNumber from './Component/Accountnumber';
+import LoadMoneyScreen from './Component/LoadMoneyScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -76,7 +75,7 @@ const App = () => {
         />
         <Stack.Screen
           name="Eight"
-          component={AccountNumber}
+          component={LoadMoneyScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

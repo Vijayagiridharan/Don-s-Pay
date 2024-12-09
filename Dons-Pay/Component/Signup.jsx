@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import axios from "axios";
+import Icon from 'react-native-vector-icons/Ionicons'; // Changed to Ionicons for consistency
+import axios from 'axios';
 
-
-const Sign = ({ navigation, route }) => {
+const Sign = ({ navigation }) => {
   const [studentId, setStudentId] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -14,7 +13,6 @@ const Sign = ({ navigation, route }) => {
   const [confirmPin, setConfirmPin] = useState('');
 
   const handleSubmit = async () => {
-    // Validate form fields
     if (!firstName || !lastName || !pin || !email || !studentId || !phoneNumber) {
       alert('Please fill in all fields');
       return;
@@ -26,19 +24,15 @@ const Sign = ({ navigation, route }) => {
         phoneNumber,
         studentId,
         email,
-        pin
+        pin,
       });
       console.log('User signed up:', response.data);
       alert('Signup successful!');
-      navigation.navigate('Third');
+      navigation.navigate('First' , {studentId, phoneNumber}); // Navigate to the appropriate screen
     } catch (error) {
       console.error('Signup error:', error);
       alert('Signup failed. Please try again.');
     }
-
-    navigation.navigate('Third');
-
-    // Clear fields after submission
     clearFields();
   };
 
@@ -50,21 +44,85 @@ const Sign = ({ navigation, route }) => {
     setEmail('');
     setPhoneNumber('');
     setStudentId('');
-
   };
 
   return (
     <View style={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate('First')} // Navigate back to Mainhome
+      >
+        <Icon name="arrow-back" size={35} color="#DAA520" />
+      </TouchableOpacity>
+
       <Text style={styles.title}>User Registration</Text>
-      <TextInput style={styles.input} placeholder="First Name" value={firstName} onChangeText={setFirstName} />
-      <TextInput style={styles.input} placeholder="Last Name" value={lastName} onChangeText={setLastName} />
-      <TextInput style={styles.input} placeholder="Student Id" value={studentId} onChangeText={setStudentId} />
-      <TextInput style={styles.input} placeholder="Phone Number" value={phoneNumber} onChangeText={setPhoneNumber} />
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
-      <TextInput style={styles.input} placeholder="Password" secureTextEntry value={pin} onChangeText={setPin} />
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>First Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your First Name"
+          value={firstName}
+          onChangeText={setFirstName}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Last Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your Last Name"
+          value={lastName}
+          onChangeText={setLastName}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Student ID</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your Student ID"
+          value={studentId}
+          onChangeText={setStudentId}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Phone Number</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your Phone Number"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your Password"
+          value={pin}
+          secureTextEntry={true}
+          onChangeText={setPin}
+        />
+      </View>
+
       <TouchableOpacity style={[styles.buttonRectangle]} onPress={clearFields}>
         <Text style={styles.buttonText}>Clear</Text>
       </TouchableOpacity>
+
       <TouchableOpacity style={[styles.buttonRectangle]} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>
@@ -72,170 +130,77 @@ const Sign = ({ navigation, route }) => {
   );
 };
 
-//   return (
-//     <View style={styles.container}>
-//       <View style={styles.topContainer}>
-//         <Text style={styles.title}>Sign Up Form</Text>
-//         <View style={styles.inputContainer}>
-//           <TextInput
-//             style={styles.input}
-//             placeholder="First Name"
-//             value={firstName}
-//             onChangeText={setFirstName}
-//           />
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Last Name"
-//             value={lastName}
-//             onChangeText={setLastName}
-//           />
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Phone Number"
-//             value={phoneNumber}
-//             onChangeText={setPhoneNumber}
-//           />
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Student Id"
-//             value={studentId}
-//             onChangeText={setStudentId}
-//           />
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Email"
-//             value={email}
-//             onChangeText={setEmail}
-//           />
-//           <View style={styles.pinContainer}>
-//             <TextInput
-//               style={[styles.input, styles.pinInput]}
-//               placeholder="Enter PIN"
-//               value={pin}
-//               onChangeText={setPin}
-//               secureTextEntry={!showPin}
-//               keyboardType="numeric"
-//               maxLength={4}
-//             />
-//             <Icon
-//               name={showPin ? 'eye-slash' : 'eye'}
-//               size={20}
-//               color="#333"
-//               style={styles.eyeIcon}
-//               onPress={() => setShowPin(!showPin)}
-//             />
-//           </View>
-//           <TextInput
-//             style={styles.input}
-//             placeholder="Confirm PIN"
-//             value={confirmPin}
-//             onChangeText={setConfirmPin}
-//             secureTextEntry={!showPin}
-//             keyboardType="numeric"
-//             maxLength={4}
-//           />
-//         </View>
-//       </View>
-//       <View style={styles.bottomContainer}>
-//         <TouchableOpacity style={[styles.button, styles.buttonLeft]} onPress={clearFields}>
-//           <Text style={styles.buttonText}>Clear</Text>
-//         </TouchableOpacity>
-//         <TouchableOpacity style={[styles.button, styles.buttonRight]} onPress={handleSubmit}>
-//           <Text style={styles.buttonText}>Submit</Text>
-//         </TouchableOpacity>
-//       </View>
-//     </View>
-//   );
-// };
-
 const styles = StyleSheet.create({
-  detailsContainer: {
-    width: '80%',
-    alignItems: 'center',
-    padding: 20,
-  },
-  input2: {
-    width: '100%',
-    height: 50,
-    borderColor: '#000',
-    borderWidth: 1,
-    marginVertical: 15,
-    paddingLeft: 10,
-    borderRadius: 8,
-    color: '#000',
-    backgroundColor: '#fff',
-  },
-  camera: {
-    flex: 1,
-    width: '100%',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scanText: {
-    color: '#fff',
-    fontSize: 16,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 16,
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+    padding: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10, // Positioned on the top-left corner
+    padding: 10,
+    borderRadius: 5,
   },
   title: {
-    fontSize: 24,
-    marginBottom: 10,
-    color: '#DAA520',
-  },
-  logo: {
-    width: 100,
-    height: 100,
+    fontSize: 28,
     marginBottom: 20,
+    color: '#DAA520',
+    fontWeight: 'bold',
+  },
+  inputContainer: {
+    width: '80%',
+    marginBottom: 20,
+    position: 'relative',
+  },
+  label: {
+    position: 'absolute',
+    top: -10,
+    left: 10,
+    backgroundColor: '#fff',
+    paddingHorizontal: 5,
+    color: '#DAA520',
+    fontSize: 14,
+    zIndex: 1,
+    fontWeight: '500',
   },
   input: {
-    width: '80%',
+    width: '100%',
     height: 50,
-    borderColor: '#000',
-    borderWidth: 1,
-    marginBottom: 15,
-    paddingLeft: 10,
+    borderColor: '#DAA520',
+    borderWidth: 2,
+    borderRadius: 8,
+    paddingLeft: 15,
     color: '#000',
     backgroundColor: '#fff',
-  },
-  buttonContainer: {
-    width: '80%',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 20,
+    fontSize: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
   },
   buttonRectangle: {
     backgroundColor: '#000',
-    padding: 15,
+    paddingVertical: 15,
     width: '60%',
     alignItems: 'center',
     marginVertical: 10,
-    borderRadius: 8,
-    elevation: 3,
+    borderRadius: 50,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   buttonText: {
     color: '#DAA520',
-    fontSize: 18,
-  },
-  text: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#000',
+    fontSize: 20,
+    fontWeight: '600',
   },
 });
+
 export default Sign;

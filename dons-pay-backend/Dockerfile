@@ -23,9 +23,9 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
 # Environment variables for database configuration
-ENV SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/DonsPayDB \
-    SPRING_DATASOURCE_USERNAME=root \
-    SPRING_DATASOURCE_PASSWORD=password
+ENV SPRING_DATASOURCE_URL=jdbc:mysql://avnadmin:AVNS_3xmAREmpup53KLNEWYG@mysql-ffec95a-dons-pay.g.aivencloud.com:10948/defaultdb?ssl-mode=REQUIRED \
+    SPRING_DATASOURCE_USERNAME=avnadmin \
+    SPRING_DATASOURCE_PASSWORD=AVNS_3xmAREmpup53KLNEWYG
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

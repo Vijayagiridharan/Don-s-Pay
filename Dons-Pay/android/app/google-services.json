@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "829249086077",
+    "project_id": "sadapayapk",
+    "storage_bucket": "sadapayapk.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:829249086077:android:f5e9726336dddf54eec714",
+        "android_client_info": {
+          "package_name": "com.donspay"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBssE9G-cnFlGor30G5KdGLdEvB3NvasLE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,6 +7,11 @@ import com.acs560.dons_pay_backend.entity.Transaction;
 import com.acs560.dons_pay_backend.entity.User;
 
 import java.math.BigDecimal;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +41,22 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return passwordEncoder.matches(rawPin, user.getPin());
     }
+
+    
+    public BigDecimal addMoneyToUserBalance(String studentId, BigDecimal amount) {
+        // Find the user by studentId
+        User user = userRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Add the money to the existing balance
+        user.setDonDollarsBalance(user.getDonDollarsBalance().add(amount));
+
+        // Save the updated user
+        userRepository.save(user);
+
+        // Return the new balance
+        return user.getDonDollarsBalance();
+
 
     public BalanceResponse getUserBalance(String phoneNumber) {
         User user = userRepository.findByPhoneNumber(phoneNumber)

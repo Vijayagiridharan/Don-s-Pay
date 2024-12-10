@@ -137,7 +137,7 @@ const Sign = ({ navigation }) => {
     { name: 'firstName', placeholder: 'First Name', icon: 'person-outline' },
     { name: 'lastName', placeholder: 'Last Name', icon: 'person-outline' },
     { name: 'studentId', placeholder: 'Student ID', icon: 'card-outline' },
-    { name: 'phoneNumber', placeholder: 'Phone Number', icon: 'call-outline' },
+     { name: 'phoneNumber', placeholder: 'Phone Number', icon: 'call-outline'  },
     { name: 'email', placeholder: 'Email', icon: 'mail-outline' },
     { name: 'pin', placeholder: 'Password', icon: 'lock-closed-outline', secureTextEntry: true },
     { name: 'confirmPin', placeholder: 'Confirm Password', icon: 'lock-closed-outline', secureTextEntry: true },

@@ -57,9 +57,7 @@ public class UserService {
 
         // Return the new balance
         return user.getDonDollarsBalance();
-
     }
-
 
 
     public BalanceResponse getUserBalance(String phoneNumber) {
@@ -75,6 +73,8 @@ public class UserService {
         return transactionRepository.findByUser(user);
     }
     public BigDecimal addMoneyToUserBalance(LoadMoney loadMoney) {
+        if (loadMoney.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");}
         // Find the user by studentId
         User user = userRepository.findByStudentId(loadMoney.getStudentId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -86,6 +86,25 @@ public class UserService {
         userRepository.save(user);
 
         // Return the new balance
-        return user.getDonDollarsBalance();
+        return ((UserService) userRepository).addMoneyToUserBalance(loadMoney.getStudentId(), loadMoney.getAmount());
+    }
+    
+    public User findUserByStudentId(String studentId) {
+        return userRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new RuntimeException("User not found with student ID: " + studentId));
+    }
+    
+    public User updateUserProfile(User updatedUser) {
+        User existingUser = userRepository.findById(updatedUser.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + updatedUser.getUserId()));
+
+        // Update user details
+        existingUser.setFirstName(updatedUser.getFirstName());
+        existingUser.setLastName(updatedUser.getLastName());
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+
+        // Save and return updated user
+        return userRepository.save(existingUser);
     }
 }

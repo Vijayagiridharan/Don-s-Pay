@@ -18,7 +18,7 @@ import axios from 'axios';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 
 const SplitScreen = ({ route, navigation }) => {
-  const { phoneNumber, token, studentId } = route.params;
+  const { phoneNumber, token, studentId, refresh } = route.params;
   const [donDollarBalance, setDonDollarBalance] = useState(0);
   const [mealSwipes, setMealSwipes] = useState(0);
   const [transactions, setTransactions] = useState([]);
@@ -26,8 +26,7 @@ const SplitScreen = ({ route, navigation }) => {
   const [backPressCount, setBackPressCount] = useState(0);
   const [isScanning, setIsScanning] = useState(false);
   const [showBalance, setShowBalance] = useState(false);
-  const fadeAnim = new Animated.Value(0);
-  
+  const fadeAnim = new Animated.Value(100);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -35,7 +34,18 @@ const SplitScreen = ({ route, navigation }) => {
     fetchBalance();
     fetchTransactions();
     startFadeIn();
-  }, []);
+  }, [phoneNumber]);
+  useEffect(() => {
+    if (route.params?.refresh) {
+      // Re-fetch data when 'refresh' parameter exists
+      fetchBalance();
+      fetchTransactions();
+
+      // Reset the refresh parameter
+      navigation.setParams({ refresh: false });
+    }
+  }, [route.params?.refresh]);
+
 
   // Fade-in animation
   const startFadeIn = () => {
@@ -101,7 +111,7 @@ const SplitScreen = ({ route, navigation }) => {
     }
   };
 
-  // Back press handler
+  // Handle back press
   useEffect(() => {
     const backAction = () => {
       if (isScanning) {
@@ -125,13 +135,27 @@ const SplitScreen = ({ route, navigation }) => {
     };
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
     return () => backHandler.remove();
   }, [navigation, backPressCount, isScanning]);
-  
-  
+
+  // Save current screen
+  useEffect(() => {
+    const saveCurrentScreen = async () => {
+      try {
+        await AsyncStorage.setItem('lastScreen', JSON.stringify({ screen: 'Fourth', phoneNumber }));
+      } catch (e) {
+        console.error('Failed to save the current screen.', e);
+      }
+    };
+
+    saveCurrentScreen();
+  }, [phoneNumber, studentId]);
+
+
   // Render transaction item
   const renderTransactionItem = ({ item }) => {
-    const isExpense = item.amount > 0;  // Change logic here
+    const isExpense = item.amount > 0;
     return (
       <View style={styles.transactionCard}>
         <Icon
@@ -146,15 +170,21 @@ const SplitScreen = ({ route, navigation }) => {
             {new Date(item.timestamp).toLocaleString()}
           </Text>
         </View>
-        <Text style={[
-          styles.transactionAmount, 
-          { color: isExpense ? '#FF6F61' : '#6C63FF' }
-        ]}>
+        <Text
+          style={[
+            styles.transactionAmount,
+            { color: isExpense ? '#FF6F61' : '#6C63FF' },
+          ]}
+        >
           {isExpense ? '-' : '+'}${Math.abs(item.amount)}
         </Text>
       </View>
     );
   };
+  useEffect(() => {
+    console.log('isScanning updated:', isScanning);
+  }, [isScanning]);
+  // QR Code Scanner Component
   const ScanAndPay = () => {
     const onSuccess = (e) => {
       try {
@@ -192,23 +222,17 @@ const SplitScreen = ({ route, navigation }) => {
   if (isScanning) {
     return <ScanAndPay />;
   }
-
-
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      {/* Top Section with Gradient */}
-      <LinearGradient 
-        colors={['#6C63FF', '#7E85FF']} 
-        style={styles.topSection}
-      >
+      <LinearGradient colors={['#6C63FF', '#7E85FF']} style={styles.topSection}>
         <View style={styles.headerContainer}>
           <View style={styles.headerLeftContent}>
             <Text style={styles.greetingText}>Good Morning,</Text>
             <Text style={styles.userName}>{studentName}</Text>
           </View>
           <View style={styles.headerRightContent}>
-            <TouchableOpacity 
-              onPress={() => navigation.navigate('Profile', { studentId, token, phoneNumber })}
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Sixth', { studentId, token, phoneNumber })}
               style={styles.profileButton}
             >
               <Icon name="account" size={24} color="#FFF" />
@@ -218,58 +242,39 @@ const SplitScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Balance Card with Privacy Option */}
         <View style={styles.balanceCard}>
-          <TouchableOpacity 
-            style={styles.balanceItem} 
-            onPress={() => setShowBalance(!showBalance)}
-          >
+          <TouchableOpacity style={styles.balanceItem} onPress={() => setShowBalance(!showBalance)}>
             <Text style={styles.balanceLabel}>Don $$</Text>
             <Text style={styles.balanceAmount}>
-              {showBalance 
-                ? `$${donDollarBalance.toFixed(2)}` 
-                : '****'}
+              {showBalance ? `$${donDollarBalance.toFixed(2)}` : '****'}
             </Text>
           </TouchableOpacity>
           <View style={styles.balanceItem}>
             <Text style={styles.balanceLabel}>Meal Swipes</Text>
-            <Text style={styles.balanceAmount}>
-              {mealSwipes}
-            </Text>
+            <Text style={styles.balanceAmount}>{mealSwipes}</Text>
           </View>
         </View>
-
-        {/* Quick Actions remain the same */}
         <View style={styles.quickActions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.quickActionButton}
             onPress={() => navigation.navigate('Eight', { studentId, token, phoneNumber })}
           >
             <Icon name="wallet-plus" size={24} color="#6C63FF" />
             <Text style={styles.quickActionText}>Load Money</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-  style={styles.quickActionButton}
-  onPress={() => {
-    console.log('Setting isScanning to true'); // Debug
-    setIsScanning(true);
-  }}
->
-  <Icon name="qrcode-scan" size={24} color="#6C63FF" />
-  <Text style={styles.quickActionText}>Scan & Pay</Text>
-</TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity style={styles.quickActionButton} onPress={() => setIsScanning(true)}>
+            <Icon name="qrcode-scan" size={24} color="#6C63FF" />
+            <Text style={styles.quickActionText}>Scan & Pay</Text>
+          </TouchableOpacity>
+          {/* <TouchableOpacity
             style={styles.quickActionButton}
             onPress={() => navigation.navigate('Ninth', { phoneNumber, token })}
           >
             <Icon name="credit-card" size={24} color="#6C63FF" />
             <Text style={styles.quickActionText}>Send Money</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </LinearGradient>
-
-      {/* Transactions Section remains the same */}
       <View style={styles.transactionsSection}>
         <Text style={styles.sectionTitle}>Recent Transactions</Text>
         <FlatList

@@ -35,7 +35,7 @@ const SendMoneyScreen = ({ route }) => {
         }
 
         // Fetch from API
-        const response = await axios.get('http://10.0.0.6:8080/api/user/balance', {
+        const response = await axios.get('https://don-s-pay.onrender.com/api/user/balance', {
           params: { phoneNumber },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ const SendMoneyScreen = ({ route }) => {
 
     try {
       await axios.post(
-        'http://10.0.0.6:8080/api/transactions/sendMoney',
+        'https://don-s-pay.onrender.com/api/transactions/sendMoney',
         {
           phoneNumber,
           merchantNumber,

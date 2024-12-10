@@ -96,7 +96,7 @@ const Login = ({ route, navigation }) => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('http://10.0.0.6:8080/api/auth/login', formData);
+      const response = await axios.post('https://don-s-pay.onrender.com/api/auth/login', formData);
       const user = response.data;
       const token = response.data.token;
 

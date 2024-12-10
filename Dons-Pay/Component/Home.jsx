@@ -60,7 +60,7 @@ const SplitScreen = ({ route, navigation }) => {
   // Fetch student details
   const fetchStudentDetails = async () => {
     try {
-      const response = await axios.get('http://10.0.0.6:8080/api/user/getProfile', {
+      const response = await axios.get('https://don-s-pay.onrender.com/api/user/getProfile', {
         params: { studentId },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -73,7 +73,7 @@ const SplitScreen = ({ route, navigation }) => {
   // Fetch balance
   const fetchBalance = async () => {
     try {
-      const response = await axios.get('http://10.0.0.6:8080/api/user/balance', {
+      const response = await axios.get('https://don-s-pay.onrender.com/api/user/balance', {
         params: { phoneNumber },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -89,7 +89,7 @@ const SplitScreen = ({ route, navigation }) => {
   // Fetch transactions
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get('http://10.0.0.6:8080/api/user/transactions', {
+      const response = await axios.get('https://don-s-pay.onrender.com/api/user/transactions', {
         params: { phoneNumber },
         headers: { Authorization: `Bearer ${token}` },
       });

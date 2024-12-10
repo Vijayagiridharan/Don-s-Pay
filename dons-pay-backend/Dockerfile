@@ -1,4 +1,4 @@
-# Build Stage
+# Build Stages
 FROM maven:3-eclipse-temurin-17 AS build
 WORKDIR /app
 

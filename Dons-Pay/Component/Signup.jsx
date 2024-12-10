@@ -106,7 +106,7 @@ const Sign = ({ navigation }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await axios.post('http://10.0.0.6:8080/api/auth/register', {
+      const response = await axios.post('https://don-s-pay.onrender.com/api/auth/register', {
         ...formData,
       });
       showSnackbar('Signup successful!');

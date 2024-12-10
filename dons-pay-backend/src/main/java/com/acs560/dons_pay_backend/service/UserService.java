@@ -86,7 +86,7 @@ public class UserService {
         userRepository.save(user);
 
         // Return the new balance
-        return ((UserService) userRepository).addMoneyToUserBalance(loadMoney.getStudentId(), loadMoney.getAmount());
+        return user.getDonDollarsBalance();
     }
     
     public User findUserByStudentId(String studentId) {

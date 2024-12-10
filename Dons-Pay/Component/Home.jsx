@@ -156,6 +156,8 @@ const SplitScreen = ({ route, navigation }) => {
   // Render transaction item
   const renderTransactionItem = ({ item }) => {
     const isExpense = item.amount > 0;
+    const typeofBal = item.type;
+    console.log(typeofBal);
     return (
       <View style={styles.transactionCard}>
         <Icon
@@ -169,6 +171,9 @@ const SplitScreen = ({ route, navigation }) => {
           <Text style={styles.transactionTime}>
             {new Date(item.timestamp).toLocaleString()}
           </Text>
+          <Text style={styles.transactionTime}>
+            {item.type}
+          </Text>
         </View>
         <Text
           style={[
@@ -178,6 +183,7 @@ const SplitScreen = ({ route, navigation }) => {
         >
           {isExpense ? '-' : '+'}${Math.abs(item.amount)}
         </Text>
+
       </View>
     );
   };

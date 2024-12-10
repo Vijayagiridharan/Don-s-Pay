@@ -10,6 +10,7 @@ import DonsPayLoginScreen from './Component/Mainhome';
 import SendMoneyScreen from './Component/Sendmoney';
 import LoadMoneyScreen from './Component/LoadMoneyScreen';
 import ProfileScreen from './Component/ProfileScreen';
+import ForgotPasswordModal from './Component/ForgotPasswordModal';
 
 
 const Stack = createNativeStackNavigator();
@@ -46,6 +47,11 @@ const App = () => {
         <Stack.Screen
           name="Second"
           component={Sign}
+          options={{ headerShown: false }}
+        />
+                <Stack.Screen
+          name="Third"
+          component={ForgotPasswordModal}
           options={{ headerShown: false }}
         />
         <Stack.Screen

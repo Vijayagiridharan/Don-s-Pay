@@ -1,151 +1,191 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Image,
+  Animated,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import Icon from 'react-native-vector-icons/Ionicons';
 
+const WelcomeScreen = ({ navigation }) => {
+  const [typedText, setTypedText] = useState('');
+  const fullText = "To DonsPay, One-stop for all your campus payments.";
+  const [fadeAnim] = useState(new Animated.Value(0));
 
-const DonsPayLoginScreen = (props) => {
   useEffect(() => {
+    let typingInterval;
+    let currentIndex = 0;
+
+    // Start typing animation
+    typingInterval = setInterval(() => {
+      if (currentIndex < fullText.length) {
+        setTypedText(prev => prev + fullText[currentIndex]);
+        currentIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 50);
+
+    // Fade in animation for buttons
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      delay: fullText.length * 50, // Delay until typing is complete
+      useNativeDriver: true,
+    }).start();
+
+    return () => clearInterval(typingInterval);
   }, []);
 
-
   return (
-    <View style={styles.container}>
-      <Image source={require("../assets/logo.jpg")} style={styles.logo} />
-      <Text style={styles.title}>Welcome to</Text>
-      <Text style={styles.subtitle}>DonsPay</Text>
-      
-      <Text style={styles.tagline}>
-      One-stop for all your campus payments.
-      </Text>
+    <LinearGradient
+      colors={['#8E2DE2', '#4A00E0']}
+      style={styles.container}
+    >
+      {/* Logo with subtle animation */}
+      <Animated.View 
+        style={[
+          styles.logoContainer, 
+          { 
+            transform: [
+              { 
+                scale: fadeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.8, 1]
+                }) 
+              }
+            ]
+          }
+        ]}
+      >
+        <Image
+          source={require('../assets/logo.jpg')}
+          style={styles.logo}
+        />
+      </Animated.View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.buttonRectangle, styles.loginButton]}
-          onPress={() => props.navigation.navigate("Fifth")}
-        >
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.buttonRectangle, styles.registerButton]}
-          onPress={() => props.navigation.navigate("Second")}
-        >
-          <Text style={styles.buttonText}>Register</Text>
-        </TouchableOpacity>
+      {/* Welcome Text with Typing Effect */}
+      <View style={styles.textContainer}>
+        <Text style={styles.welcomeText}>Welcome</Text>
+        <Text style={styles.subText}>{typedText}</Text>
       </View>
-    </View>
+
+      {/* Animated Buttons */}
+      <Animated.View 
+        style={[
+          styles.buttonContainer, 
+          { 
+            opacity: fadeAnim,
+            transform: [
+              { 
+                translateY: fadeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [50, 0]
+                }) 
+              }
+            ]
+          }
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('Fifth')}
+        >
+          <Icon name="log-in-outline" size={20} color="white" style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>Sign In</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.outlineButton}
+          onPress={() => navigation.navigate('Second')}
+        >
+          <Icon name="person-add-outline" size={20} color="white" style={styles.buttonIcon} />
+          <Text style={styles.outlineButtonText}>Sign Up</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </LinearGradient>
   );
 };
-
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: 'space-between',
-//     paddingHorizontal: 20,
-//     paddingTop: 40,
-//     paddingBottom: 20,
-//     backgroundColor: '#fff',
-//   },
-//   topContainer: {
-//     flex: 1,
-//     justifyContent: 'flex-start',
-//     alignItems: 'center',
-//   },
-//   bottomContainer: {
-//     justifyContent: 'flex-end',
-//   },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: 'bold',
-//     marginBottom: 20,
-//   },
-//   inputContainer: {
-//     width: '100%',
-//   },
-//   input: {
-//     borderWidth: 1,
-//     borderColor: '#ccc',
-//     borderRadius: 10,
-//     paddingHorizontal: 15,
-//     paddingVertical: 10,
-//     fontSize: 16,
-//     marginBottom: 20,
-//   },
-//   button: {
-//     width: '100%',
-//     backgroundColor: '#FF7B66',
-//     borderRadius: 10,
-//     paddingVertical: 12,
-//   },
-//   buttonText: {
-//     color: '#fff',
-//     fontWeight: 'bold',
-//     textAlign: 'center',
-//     fontSize: 18,
-//   },
-// });
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    marginBottom: 30,
   },
   logo: {
     width: 200,
     height: 200,
-    marginBottom: 20,
+    borderRadius: 30,
+    borderWidth: 0,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#DAA520",
-    marginBottom: 5,
+  textContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  subtitle: {
+  welcomeText: {
     fontSize: 36,
-    fontWeight: "800",
-    color: "#000",
-    marginBottom: 15,
+    color: 'white',
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
-  tagline: {
+  subText: {
     fontSize: 16,
-    textAlign: "center",
-    color: "#444",
-    marginHorizontal: 20,
-    marginBottom: 15,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   buttonContainer: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
   },
-  buttonRectangle: {
+  button: {
+    backgroundColor: '#6A5ACD',
     paddingVertical: 15,
-    width: "70%",
-    alignItems: "center",
-    borderRadius: 50,
-    marginVertical: 10,
-    elevation: 5,
-    shadowColor: "#000",
+    paddingHorizontal: 80,
+    borderRadius: 30,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  loginButton: {
-    backgroundColor: "#000",
-  },
-  registerButton: {
-    backgroundColor: "#DAA520",
+  buttonIcon: {
+    marginRight: 10,
   },
   buttonText: {
+    color: 'white',
     fontSize: 18,
-    fontWeight: "600",
-    color: "#fff",
+    fontWeight: 'bold',
+  },
+  outlineButton: {
+    borderColor: 'white',
+    borderWidth: 2,
+    paddingVertical: 15,
+    paddingHorizontal: 80,
+    borderRadius: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outlineButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
 });
 
-export default DonsPayLoginScreen;
+export default WelcomeScreen;

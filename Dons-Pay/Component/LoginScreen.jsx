@@ -1,165 +1,291 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // Changed to Ionicons for consistency
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Animated,
+  ScrollView,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Snackbar from 'react-native-snackbar';
 import axios from 'axios';
 
 const Login = ({ route, navigation }) => {
-  const [studentId, setStudentId] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [pin, setPin] = useState('');
+  const [formData, setFormData] = useState({
+    studentId: '',
+    phoneNumber: '',
+    pin: '',
+  });
 
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Shake animations for each input
+  const shakeAnims = useRef({
+    studentId: new Animated.Value(0),
+    phoneNumber: new Animated.Value(0),
+    pin: new Animated.Value(0),
+  }).current;
+
+  // Validation function
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'studentId':
+        return /^\d{6,10}$/.test(value);
+      case 'phoneNumber':
+        return /^\d{10}$/.test(value);
+      case 'pin':
+        return value.length >= 6;
+      default:
+        return true;
+    }
+  };
+
+  // Shake animation implementation
+  const startShakeAnimation = (animValue) => {
+    Animated.sequence([
+      Animated.timing(animValue, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(animValue, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(animValue, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(animValue, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
+  };
+
+  // Handle input change without shaking
+  const handleInputChange = (name, value) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Update error state dynamically
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: !validateField(name, value),
+      }));
+    }
+  };
+
+  // Handle input blur (focus loss)
+  const handleInputBlur = (name) => {
+    if (!validateField(name, formData[name])) {
+      setErrors((prev) => ({ ...prev, [name]: true }));
+      startShakeAnimation(shakeAnims[name]);
+    } else {
+      setErrors((prev) => ({ ...prev, [name]: false }));
+    }
+  };
+
+  // Login handler with validation
   const handleLogin = async () => {
-    if (!phoneNumber || !studentId || !pin) {
-      showSnackbar('Please fill in all fields');
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      if (!validateField(key, formData[key])) {
+        newErrors[key] = true;
+        startShakeAnimation(shakeAnims[key]);
+      }
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      showSnackbar('Please correct the errors in the form');
       return;
     }
-    try {
-      const response = await axios.post('http://10.0.0.6:8080/api/auth/login', {
-        phoneNumber,
-        studentId,
-        pin,
-      });
 
-      const user = response.data; // Backend returns user details as JSON
+    setIsLoading(true);
+    try {
+      const response = await axios.post('http://10.0.0.6:8080/api/auth/login', formData);
+      const user = response.data;
       const token = response.data.token;
 
-      console.log(`response is: `, response.data);
-
       if (user) {
-        navigation.navigate('Fourth', { phoneNumber, studentId, token });
+        navigation.navigate('Fourth', { ...formData, token });
       } else {
         showSnackbar('User not found');
       }
     } catch (error) {
-      console.error('Login failed: ', error);
-      showSnackbar('Login failed. Please try again.');
+      console.error('Login failed:', error);
+      showSnackbar(error.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Snackbar utility
   const showSnackbar = (message) => {
     Snackbar.show({
       text: message,
       duration: Snackbar.LENGTH_SHORT,
+      backgroundColor: '#FF6347',
+      textColor: '#FFFFFF',
     });
   };
 
   return (
-    <View style={styles.container}>
-      {/* Back Button */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.navigate('First')} // Navigate to Mainhome
-      >
-        <Icon name="arrow-back" size={35} color="#DAA520" />
-      </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* Back Button */}
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('First')}>
+          <Icon name="arrow-back" size={30} color="#4A00E0" />
+        </TouchableOpacity>
 
-      <Text style={styles.title}>User Login</Text>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Student ID</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your Student ID"
-          value={studentId}
-          onChangeText={setStudentId}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Phone Number</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your Phone Number"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your Password"
-          value={pin}
-          secureTextEntry={true}
-          onChangeText={setPin}
-        />
-      </View>
-      <TouchableOpacity style={styles.buttonRectangle} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Title */}
+        <Text style={styles.title}>Welcome Back</Text>
+
+        {/* Input Fields */}
+        {['studentId', 'phoneNumber', 'pin'].map((name, index) => {
+          const placeholders = {
+            studentId: 'Student ID',
+            phoneNumber: 'Phone Number',
+            pin: 'Password',
+          };
+          const icons = {
+            studentId: 'card-outline',
+            phoneNumber: 'call-outline',
+            pin: 'lock-closed-outline',
+          };
+          return (
+            <Animated.View
+              key={index}
+              style={[
+                styles.inputContainer,
+                { transform: [{ translateX: shakeAnims[name] }] },
+              ]}
+            >
+              <View style={styles.inputWrapper}>
+                <Icon
+                  name={icons[name]}
+                  size={20}
+                  color={errors[name] ? '#FF6347' : '#4A00E0'}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={[styles.input, errors[name] && styles.inputError]}
+                  placeholder={placeholders[name]}
+                  placeholderTextColor="#D3D3D3"
+                  value={formData[name]}
+                  onChangeText={(value) => handleInputChange(name, value)}
+                  onBlur={() => handleInputBlur(name)}
+                  secureTextEntry={name === 'pin'}
+                  keyboardType={name === 'phoneNumber' ? 'phone-pad' : 'default'}
+                />
+              </View>
+              {errors[name] && <Text style={styles.errorText}>Invalid {placeholders[name]}</Text>}
+            </Animated.View>
+          );
+        })}
+
+        {/* Login Button */}
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? 'Logging In...' : 'Login'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Forgot Password Link */}
+        <TouchableOpacity
+          style={styles.forgotPasswordContainer}
+          onPress={() => navigation.navigate('ForgotPassword')}
+        >
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 20,
   },
   backButton: {
     position: 'absolute',
-    top: 10,
-    left: 10, // Positioned on the top-left corner
-    padding: 10,
-    borderRadius: 5,
+    top: 40,
+    left: 20,
   },
   title: {
     fontSize: 28,
-    marginBottom: 20,
-    color: '#DAA520',
+    color: '#4A00E0',
     fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
   },
   inputContainer: {
-    width: '80%',
-    marginBottom: 20,
-    position: 'relative',
-  },
-  label: {
-    position: 'absolute',
-    top: -10,
-    left: 10,
-    backgroundColor: '#fff',
-    paddingHorizontal: 5,
-    color: '#DAA520',
-    fontSize: 14,
-    zIndex: 1,
-    fontWeight: '500',
-  },
-  input: {
     width: '100%',
-    height: 50,
-    borderColor: '#DAA520',
-    borderWidth: 2,
-    borderRadius: 8,
-    paddingLeft: 15,
-    color: '#000',
-    backgroundColor: '#fff',
-    fontSize: 16,
+    marginBottom: 15,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#D3D3D3',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  buttonRectangle: {
-    backgroundColor: '#000',
+  inputIcon: {
+    marginLeft: 15,
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+    color: '#000',
+    paddingRight: 20,
+  },
+  inputError: {
+    borderColor: '#FF6347',
+  },
+  errorText: {
+    color: '#FF6347',
+    fontSize: 12,
+    marginTop: 5,
+    marginLeft: 20,
+  },
+  button: {
+    backgroundColor: '#4A00E0',
+    borderRadius: 25,
     paddingVertical: 15,
-    width: '60%',
+    width: '100%',
     alignItems: 'center',
-    marginVertical: 15,
-    borderRadius: 50,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    marginTop: 20,
+  },
+  buttonDisabled: {
+    backgroundColor: '#D3D3D3',
   },
   buttonText: {
-    color: '#DAA520',
-    fontSize: 20,
-    fontWeight: '600',
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  forgotPasswordContainer: {
+    marginTop: 15,
+  },
+  forgotPasswordText: {
+    color: '#4A00E0',
+    fontSize: 16,
+    textDecorationLine: 'underline',
   },
 });
 

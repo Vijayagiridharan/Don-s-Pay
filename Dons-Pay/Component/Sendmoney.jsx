@@ -14,6 +14,8 @@ const SendMoneyScreen = ({ route }) => {
   const [selectedBalanceType, setSelectedBalanceType] = useState('');
   const [enteredAmount, setEnteredAmount] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [pin, setPin] = useState("");
 
   // Pre-fill merchant data from QR
   const merchantName = qrData?.merchantName || 'Unknown Merchant';
@@ -59,6 +61,7 @@ const SendMoneyScreen = ({ route }) => {
   }, [phoneNumber, studentId]);
 
   const handleSendMoney = async () => {
+    
     if (!selectedBalanceType) {
       Alert.alert('Balance Type Required', 'Please select a balance type to proceed.');
       return;

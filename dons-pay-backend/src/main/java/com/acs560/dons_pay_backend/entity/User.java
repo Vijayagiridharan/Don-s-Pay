@@ -36,6 +36,18 @@ public class User {
     @Column(columnDefinition = "INT DEFAULT 0")
     private Integer mealSwipesBalance = 0;
     
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
+    // Getter and Setter
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+    
     
     // Required no-args constructor for JPA
     public User() {

@@ -54,28 +54,27 @@ const ProfileScreen = ({ route, navigation }) => {
   const updateProfile = async () => {
     try {
       const updateData = {
+        userId: profile.userId,
         firstName: profile.firstName,
         lastName: profile.lastName,
         email: profile.email,
+        phoneNumber: profile.phoneNumber,
+        profilePictureUrl: profileImage, // Send profile image URL or base64 string
       };
-
+  
       await axios.put(
-        'https://don-s-pay.onrender.com/api/user/profile',
+        'https://don-s-pay.onrender.com/api/user/updateProfile',
         updateData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      // Save profile image locally
-      if (profileImage) {
-        await AsyncStorage.setItem('profileImage', profileImage);
-      }
-
+  
       Alert.alert('Success', 'Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     }
   };
+  
 
   const loadProfileImage = async () => {
     try {

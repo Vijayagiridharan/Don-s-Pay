@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -103,8 +104,21 @@ public class UserService {
         existingUser.setLastName(updatedUser.getLastName());
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+        existingUser.setProfilePictureUrl(updatedUser.getProfilePictureUrl());
 
         // Save and return updated user
         return userRepository.save(existingUser);
     }
+    public boolean updateUserPassword(String studentId, String newPassword) {
+        Optional<User> userOptional = userRepository.findByStudentId(studentId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            String encodedPassword = passwordEncoder.encode(newPassword);
+            user.setPin(encodedPassword);
+            userRepository.save(user);
+            return true;
+        }
+        return false;
+    }
+
 }

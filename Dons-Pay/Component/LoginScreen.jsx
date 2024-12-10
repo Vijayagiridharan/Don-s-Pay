@@ -13,6 +13,8 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import Snackbar from 'react-native-snackbar';
 import axios from 'axios';
+import ForgotPasswordModal from './ForgotPasswordModal';
+ForgotPasswordModal
 
 const Login = ({ route, navigation }) => {
   const [formData, setFormData] = useState({
@@ -23,6 +25,12 @@ const Login = ({ route, navigation }) => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
+  const [forgotPasswordData, setForgotPasswordData] = useState({
+    studentId: '',
+    newPassword: '',
+  });
+  
 
   // Shake animations for each input
   const shakeAnims = useRef({
@@ -30,6 +38,40 @@ const Login = ({ route, navigation }) => {
     phoneNumber: new Animated.Value(0),
     pin: new Animated.Value(0),
   }).current;
+  const modalShakeAnim = useRef(new Animated.Value(0)).current;
+
+  // Modify the existing code to add modal opening function
+  const handleForgotPassword = async (studentId, newPassword) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.put(
+        `https://don-s-pay.onrender.com/api/user/forgotPassword`,
+
+        {
+            studentId, // Ensure this matches the backend parameter name
+            newPassword,
+          },
+      );
+  
+      showSnackbar('Password updated successfully.');
+      setIsForgotPasswordModalVisible(false);
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      showSnackbar(error.response?.data || 'Password reset failed.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Open Modal Function
+  const openForgotPasswordModal = () => {
+    setIsForgotPasswordModalVisible(true);
+  };
+
+  // Close Modal Function
+  const handleCloseForgotPasswordModal = () => {
+    setIsForgotPasswordModalVisible(false);
+  };
 
   // Validation function
   const validateField = (name, value) => {
@@ -136,6 +178,7 @@ const Login = ({ route, navigation }) => {
 
         {/* Title */}
         <Text style={styles.title}>Welcome Back</Text>
+        
 
         {/* Input Fields */}
         {['studentId', 'phoneNumber', 'pin'].map((name, index) => {
@@ -191,14 +234,24 @@ const Login = ({ route, navigation }) => {
           </Text>
         </TouchableOpacity>
 
-        {/* Forgot Password Link */}
+                {/* Forgot Password Link */}
         <TouchableOpacity
           style={styles.forgotPasswordContainer}
-          onPress={() => navigation.navigate('ForgotPassword')}
+          onPress={openForgotPasswordModal}
         >
           <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isVisible={isForgotPasswordModalVisible}
+        onClose={handleCloseForgotPasswordModal}
+        onSubmit={handleForgotPassword}
+        shakeAnim={modalShakeAnim}
+      />
+        
       </ScrollView>
+      
     </KeyboardAvoidingView>
   );
 };
